@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zenith Bank | Loan Eligibility Portal</title>
+  <meta name="description" content="Zenith Bank - Check your loan eligibility instantly across Personal, Home, Auto, MSME and more. Zero impact on your credit score." />
+  <link rel="stylesheet" href="src/styles/main.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23004b87'/><text x='50' y='70' text-anchor='middle' fill='%23c68a26' font-size='58' font-weight='800' font-family='sans-serif'>Z</text></svg>" />
+</head>
+<body>
+
+  <!-- Utility Bar -->
+  <div class="bank-utility-bar">
+    <div class="utility-container">
+      <div class="utility-left">
+        <span>Toll-Free: <strong>1800 209 8888</strong></span>
+        <span>5,400+ Branches</span>
+        <span>RBI Licensed</span>
+      </div>
+      <div class="utility-right">
+        <span class="text-xs">256-Bit Secured</span>
+        <a href="#" class="utility-link" onclick="alert('Redirecting to NetBanking...'); return false;">NetBanking</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Header -->
+  <header class="bank-main-header">
+    <div class="header-container">
+      <a href="#" class="bank-brand" title="Zenith Bank Home">
+        <div class="bank-crest">Z</div>
+        <div class="bank-title-group">
+          <h1>ZENITH BANK</h1>
+          <span class="bank-tagline">Loan Eligibility &amp; Pre-Qualification Portal</span>
+        </div>
+      </a>
+
+      <nav class="module-nav" aria-label="Portal modules">
+        <button class="nav-tab-btn active" data-view="retail">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Apply
+        </button>
+        <button class="nav-tab-btn" data-view="rm_console">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          RM Console
+        </button>
+        <button class="nav-tab-btn" data-view="policy_manager">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Policy
+        </button>
+        <button class="nav-tab-btn" data-view="underwriter">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Underwriter
+        </button>
+        <button class="nav-tab-btn" data-view="partner_api">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          API
+        </button>
+        <button class="nav-tab-btn" data-view="analytics">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          Analytics
+        </button>
+      </nav>
+
+      <button id="btn-theme-toggle" class="btn btn-xs btn-outline" title="Toggle theme">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="app-container" id="app-main-content"></main>
+
+  <!-- Footer -->
+  <footer class="bank-footer">
+    <div class="footer-container">
+      <div class="footer-cols">
+        <div>
+          <strong>Zenith Bank Limited</strong>
+          <p class="text-xs mt-2" style="color:var(--text-muted)">Scheduled Commercial Bank &mdash; Reserve Bank of India</p>
+          <p class="text-xs mt-1" style="color:var(--text-dim)">Regd. Office: Zenith Towers, C-60 G Block, BKC, Mumbai 400051</p>
+          <p class="text-xs mt-1" style="color:var(--text-dim)">CIN: L65110MH1994PLC080880</p>
+        </div>
+        <div>
+          <strong class="text-sm">Policies</strong>
+          <ul class="footer-nav-list">
+            <li><a href="#" onclick="alert('RBI Fair Practices Code'); return false;">Fair Practices Code</a></li>
+            <li><a href="#" onclick="alert('EBLR pegged to Repo Rate 6.50%'); return false;">EBLR Disclosure</a></li>
+            <li><a href="#" onclick="alert('DPDP Act 2023 Privacy Notice'); return false;">Privacy Notice</a></li>
+            <li><a href="#" onclick="alert('Banking Ombudsman Scheme'); return false;">Ombudsman</a></li>
+          </ul>
+        </div>
+        <div>
+          <strong class="text-sm">Compliance</strong>
+          <p class="text-xs mt-2" style="color:var(--text-muted)">ISO 27001 &bull; 256-Bit SSL &bull; Soft-Pull Only</p>
+          <p class="text-xs mt-2" style="color:var(--text-dim)">Eligibility results are indicative pre-qualifications. Formal sanction subject to full underwriting in the Loan Origination System.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 Zenith Bank Limited. Member of Indian Banks' Association.
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

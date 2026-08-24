@@ -1,0 +1,15 @@
+.git
+.gitignore
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+Thumbs.db
+*.log
+.gemini/
+.agents/
+.vscode/
+.idea/
+test_suite.py
