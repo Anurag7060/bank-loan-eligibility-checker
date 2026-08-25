@@ -3,8 +3,20 @@
   "cleanUrls": true,
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/server.py"
+    },
+    {
+      "src": "/health",
+      "dest": "/server.py"
+    },
+    {
       "src": "/src/(.*)",
       "dest": "/src/$1"
+    },
+    {
+      "src": "/(.*\\.(?:js|css|json|ico|svg|png|jpg|jpeg|woff|woff2|ttf|txt|html|csv))",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",

@@ -228,10 +228,14 @@ POLICIES = {
 
 def get_leads_vault():
     """Load leads from the local persistent store."""
-    if not os.path.exists(LEADS_VAULT_FILE):
-        return []
+    vault_file = "/tmp/leads_vault.json" if os.environ.get("VERCEL") and os.path.exists("/tmp/leads_vault.json") else LEADS_VAULT_FILE
+    if not os.path.exists(vault_file):
+        if os.path.exists(LEADS_VAULT_FILE):
+            vault_file = LEADS_VAULT_FILE
+        else:
+            return []
     try:
-        with open(LEADS_VAULT_FILE, "r", encoding="utf-8") as f:
+        with open(vault_file, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         print(f"[WARN] Error loading leads vault: {e}")
@@ -243,8 +247,15 @@ def save_lead_to_vault(lead_record):
         leads = get_leads_vault()
         leads.insert(0, lead_record)
         # Keep last 500 records
-        with open(LEADS_VAULT_FILE, "w", encoding="utf-8") as f:
-            json.dump(leads[:500], f, indent=2)
+        target_file = LEADS_VAULT_FILE
+        try:
+            with open(target_file, "w", encoding="utf-8") as f:
+                json.dump(leads[:500], f, indent=2)
+        except OSError:
+            # Fallback for read-only serverless filesystems (e.g. Vercel)
+            target_file = "/tmp/leads_vault.json"
+            with open(target_file, "w", encoding="utf-8") as f:
+                json.dump(leads[:500], f, indent=2)
     except Exception as e:
         print(f"[WARN] Error saving lead to vault: {e}")
 
@@ -892,6 +903,13 @@ class LoanEligibilityHandler(http.server.SimpleHTTPRequestHandler):
             "status": "ERROR",
             "message": f"Endpoint {path} not found"
         }).encode("utf-8"))
+
+# ==============================================================================
+# VERCEL SERVERLESS FUNCTION & WSGI/HTTP HANDLER ENTRYPOINTS
+# ==============================================================================
+handler = LoanEligibilityHandler
+app = LoanEligibilityHandler
+application = LoanEligibilityHandler
 
 def run_server():
     os.chdir(BASE_DIR)
