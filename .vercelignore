@@ -1,10 +1,8 @@
-server.py
+.env
+.env.example
 test_suite.py
-requirements.txt
-leads_vault.json
 Dockerfile
 Procfile
 render.yaml
-.env
-.env.example
-README.md
+.git
+.gitignore
