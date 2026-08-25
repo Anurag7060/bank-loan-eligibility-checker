@@ -1,0 +1,22 @@
+# Secrets - never commit
+.env
+
+# Runtime data with customer PII - never commit
+leads_vault.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log

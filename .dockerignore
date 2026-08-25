@@ -13,3 +13,8 @@ Thumbs.db
 .vscode/
 .idea/
 test_suite.py
+
+# Secrets & runtime data - never bake these into the image
+.env
+.env.example
+leads_vault.json
