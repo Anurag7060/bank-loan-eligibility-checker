@@ -11,9 +11,9 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from server import LoanEligibilityHandler
+from server import wsgi_app, LoanEligibilityHandler
 
-# Vercel top-level entrypoint exports
+# Standard WSGI & HTTP Handler exports for Vercel
+app = wsgi_app
+application = wsgi_app
 handler = LoanEligibilityHandler
-app = LoanEligibilityHandler
-application = LoanEligibilityHandler
