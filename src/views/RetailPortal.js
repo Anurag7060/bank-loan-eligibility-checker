@@ -34,6 +34,8 @@ export class RetailPortalView {
       cibilScoreOverride: null
     };
     this.lastEvaluation = null;
+    this.checkPersisted = false;
+    this.applicationReference = null;
     this.isEvaluating = false;
   }
 
@@ -508,9 +510,25 @@ export class RetailPortalView {
 
     const btnProceed = this.container.querySelector('#btn-proceed-los');
     if (btnProceed) {
-      btnProceed.addEventListener('click', () => {
-        this.appState.showToast('Transferring to full application...', 'success');
-        alert(`Application registered: APP-${Date.now().toString(36).toUpperCase()}\nYour pre-approved terms have been saved.`);
+      btnProceed.addEventListener('click', async () => {
+        btnProceed.disabled = true;
+        btnProceed.textContent = 'Registering application...';
+        try {
+          const response = await fetch('/api/v1/applications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ assessmentId: this.lastEvaluation.assessmentId })
+          });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.error || 'Unable to start your application.');
+          this.applicationReference = payload.applicationReference;
+          this.appState.showToast('Application registered successfully!', 'success');
+          alert(`Application registered: ${payload.applicationReference}\nYour pre-approved terms have been saved. Our team will contact you shortly.`);
+        } catch (error) {
+          this.appState.showToast(error.message || 'Unable to register the application. Please try again.', 'warning');
+          btnProceed.disabled = false;
+          btnProceed.innerHTML = 'Apply Online &rarr;';
+        }
       });
     }
   }
@@ -605,16 +623,30 @@ export class RetailPortalView {
 
       this.lastEvaluation = evalResult;
       this.appState.recordAssessment(this.lastEvaluation);
+      try {
+        await this.saveEligibilityCheck();
+      } catch (saveError) {
+        console.error('Eligibility save error:', saveError);
+      }
       this.render();
-      this.appState.showToast('Your loan offer is ready!', 'success');
+      this.appState.showToast(this.checkPersisted ? 'Your loan offer is ready!' : 'Your offer is ready. We could not save your enquiry.', this.checkPersisted ? 'success' : 'warning');
     } catch (err) {
       console.error('Evaluation error:', err);
-      const policies = this.appState.getPolicies();
-      this.lastEvaluation = evaluateEligibility(this.formData, policies);
-      this.appState.recordAssessment(this.lastEvaluation);
       this.render();
-      this.appState.showToast('Your loan offer is ready!', 'success');
+      this.appState.showToast('We could not complete your eligibility check. Please try again.', 'warning');
     }
+  }
+
+  async saveEligibilityCheck() {
+    this.checkPersisted = false;
+    const response = await fetch('/api/v1/eligibility/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ applicant: this.formData, result: this.lastEvaluation })
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || 'Unable to save eligibility check.');
+    this.checkPersisted = true;
   }
 
   showKfsModal(evaluation) {

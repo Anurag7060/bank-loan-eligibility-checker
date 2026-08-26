@@ -1,0 +1,9 @@
+.git
+.env
+.venv
+venv
+__pycache__
+*.pyc
+loan_portal.db*
+README.md
+test_suite.py

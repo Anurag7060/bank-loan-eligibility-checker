@@ -1,127 +1,78 @@
-# Zenith Bank - Loan Eligibility Checking System (LES)
+# Zenith Bank Loan Eligibility Portal
 
-A full-stack, enterprise-grade digital lending pre-qualification portal and REST API built with responsive vanilla JavaScript/CSS modules and a multi-threaded Python backend.
+A college-project-ready loan eligibility website with a responsive frontend, SQLite database, backend APIs, submission tracking, and optional owner email notifications.
 
----
+## What works
 
-## 🏛️ Features & Architecture
+- Customer eligibility form and instant indicative result
+- Persistent SQLite records for applicants, eligibility checks, and applications
+- Real application reference when a user selects **Apply Online**
+- Optional immediate email alerts to the project owner
+- Protected admin summary API for a demo dashboard
+- Docker packaging and automated backend checks
 
-- **Retail Self-Serve Portal**: 3-step applicant flow with zero-impact soft bureau check and real-time loan sizing.
-- **Relationship Manager 360° Console**: Multi-product borrower passport with What-If sensitivity sliders and exception referral workflow.
-- **Policy Manager & Shadow Engine**: Maker-checker dual control, policy revision editor, and 120-profile historical shadow simulation before deployment.
-- **Underwriter Queue**: Delegation of Authority (DOA) review queue with auditable decision logs and adverse action generation.
-- **DSA / Partner API Gateway**: OpenAPI 3.0 compatible stateless REST API with live cURL snippet generator and SLA latency monitoring.
-- **Executive Analytics Dashboard**: Top-of-funnel conversion pipeline, FOIR/CIBIL risk distributions, DPDP consent audit vault, and Fair Lending Parity surveillance.
+## Run locally
 
----
-
-## 🚀 Quickstart & Local Development
-
-### Option 1: Direct Python (Zero External Dependencies)
-Works natively with Python 3.8 - 3.14 on Windows, macOS, and Linux:
+You need Python 3.8 or later.
 
 ```bash
-# 1. Start backend & web portal server
 python server.py
-
-# 2. Access portal in your browser:
-#    Web Interface: http://localhost:8080
-#    Healthcheck:   http://localhost:8080/health
-#    REST API:      http://localhost:8080/api/v1/eligibility/check
 ```
 
-### Option 2: Run Automated Tests
+Open [http://localhost:8080](http://localhost:8080). The database file `loan_portal.db` is created automatically and is excluded from Git.
+
+Run checks with:
+
 ```bash
 python test_suite.py
 ```
 
----
+## Configure email alerts (optional)
 
-## 🐳 Docker Deployment
+No email account is required for the project to run. To enable alerts, copy `.env.example` to `.env`, then set:
 
-### 1. Build and Run Container Locally
-```bash
-# Build production Docker image
-docker build -t zenith-loan-portal .
-
-# Run container on port 8080
-docker run -d -p 8080:8080 -e PORT=8080 --name zenith-les zenith-loan-portal
-
-# Test container health
-curl http://localhost:8080/health
+```dotenv
+OWNER_NOTIFICATION_EMAIL=your-email@example.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@example.com
+SMTP_PASSWORD=your-email-app-password
+SMTP_FROM=Zenith Loan Portal <your-email@example.com>
 ```
 
----
+For Gmail, enable two-step verification and create an App Password. Never commit `.env`.
 
-## ☁️ Production Cloud Deployment
+Notifications include applicant and loan-request details but mask PAN and mobile values. Full records remain in the local SQLite database.
 
-### 1. Deploy to Google Cloud Run
+## Admin summary API
+
+Set `ADMIN_API_KEY` in `.env`, then use the key in an `X-Admin-Key` request header:
+
 ```bash
-# Build & deploy directly from source
-gcloud run deploy zenith-loan-portal \
-  --source . \
-  --platform managed \
-  --region asia-south1 \
-  --allow-unauthenticated \
-  --port 8080
+curl http://localhost:8080/api/v1/admin/summary -H "X-Admin-Key: your-admin-key"
 ```
 
-### 2. Deploy to Render
-1. Connect your GitHub repository to [Render](https://render.com).
-2. Render will automatically detect `render.yaml` and `Procfile`.
-3. Set environment variables:
-   - `PORT`: `10000` (assigned automatically by Render)
-   - `HOST`: `0.0.0.0`
-4. Deploy!
+The response includes total applicants, checks, applications, and outcome counts. Do not expose this key in the browser frontend.
 
-### 3. Deploy to Railway or Heroku
-The included `Procfile` enables zero-config deployment:
+## Docker
+
+With Docker Desktop installed:
+
 ```bash
-# Railway
-railway up
-
-# Heroku
-heroku create zenith-loan-portal
-git push heroku main
+docker compose up --build
 ```
 
-### 4. Deploy Frontend to Vercel / Netlify (Decoupled)
-The repository includes `vercel.json` and `netlify.toml` for Jamstack hosting if you prefer hosting the frontend on a CDN while pointing to your cloud backend API.
+This starts the portal at [http://localhost:8080](http://localhost:8080) and persists its SQLite database in a Docker volume.
 
----
+## API endpoints
 
-## 🔌 REST API Endpoints
-
-| Method | Endpoint | Description |
+| Method | Endpoint | Purpose |
 |---|---|---|
-| `GET` | `/health` | Liveness & readiness probe for orchestrators |
-| `GET` | `/api/v1/policy/rules` | Retrieve live product rule matrices & rate cards |
-| `GET` | `/api/v1/analytics/stats` | Retrieve portfolio KPIs & funnel conversion metrics |
-| `POST` | `/api/v1/eligibility/check` | Execute real-time multi-rule pre-qualification |
-| `POST` | `/api/v1/simulate/whatif` | What-if scenario calculation across loan variables |
+| `GET` | `/health` | Health check |
+| `POST` | `/api/v1/eligibility/check` | Save an eligibility check and trigger an optional email |
+| `POST` | `/api/v1/applications` | Start an application from an existing assessment |
+| `GET` | `/api/v1/admin/summary` | Protected project-admin reporting |
 
-### Sample Eligibility Check Request:
-```bash
-curl -X POST http://localhost:8080/api/v1/eligibility/check \
-  -H "Content-Type: application/json" \
-  -d '{
-    "applicant": {
-      "fullName": "Anaya Sharma",
-      "pan": "ANAPS1234K",
-      "monthlyIncome": 85000,
-      "existingEmis": 12000,
-      "requestedAmount": 800000,
-      "requestedTenureMonths": 48,
-      "loanProduct": "personal_loan",
-      "cibilScoreOverride": 785
-    }
-  }'
-```
+## Project scope note
 
----
-
-## 🛡️ Regulatory Compliance
-
-- **RBI Digital Lending Guidelines (2026)**: Zero-impact soft credit bureau waterfall, transparent Key Fact Statement (KFS) generation, and standardized Adverse Action Notices.
-- **DPDP Act 2023**: Purpose-limited digital consent audit logging with masked PII retention.
-- **Fair Lending (FR-33)**: Algorithmic bias surveillance across geographic tiers and employment sectors.
+The result is an indicative academic-project eligibility calculation. It does not connect to a real credit bureau, KYC provider, bank loan system, or payment service. A public banking deployment would require a managed database, authentication, encryption, formal compliance review, and verified third-party integrations.

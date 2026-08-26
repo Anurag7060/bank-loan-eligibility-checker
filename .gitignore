@@ -3,6 +3,10 @@
 
 # Runtime data with customer PII - never commit
 leads_vault.json
+loan_portal.db
+loan_portal.db-shm
+loan_portal.db-wal
+data/
 
 # Python
 __pycache__/
