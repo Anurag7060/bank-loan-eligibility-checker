@@ -910,7 +910,14 @@ class LoanEligibilityHandler(http.server.SimpleHTTPRequestHandler):
 
 def wsgi_app(environ, start_response):
     """Standard WSGI application compatible with Vercel Serverless, Gunicorn & AWS Lambda."""
-    path = environ.get("PATH_INFO", "/")
+    raw_path = environ.get("PATH_INFO", "/")
+    if raw_path in ["/api/index.py", "/server.py", "/api/index", "/server"]:
+        raw_path = environ.get("REQUEST_URI", raw_path)
+    
+    parsed = urlparse(raw_path)
+    path = parsed.path.rstrip("/")
+    if not path:
+        path = "/"
     method = environ.get("REQUEST_METHOD", "GET").upper()
 
     cors_headers = [
@@ -926,7 +933,7 @@ def wsgi_app(environ, start_response):
         return [b""]
 
     # 1. Healthcheck endpoints
-    if path in ["/health", "/api/v1/health"]:
+    if path in ["/health", "/api/health", "/api/v1/health", "/v1/health"]:
         health_status = {
             "status": "UP",
             "service": "Zenith-Bank-LES",
@@ -944,7 +951,7 @@ def wsgi_app(environ, start_response):
         return [body]
 
     # 2. Leads Management API
-    if path == "/api/v1/leads":
+    if path in ["/api/v1/leads", "/v1/leads", "/api/leads", "/leads"]:
         leads = get_leads_vault()
         body = json.dumps({
             "status": "SUCCESS",
@@ -960,7 +967,7 @@ def wsgi_app(environ, start_response):
         return [body]
 
     # 3. Export Leads as CSV
-    if path == "/api/v1/leads/export":
+    if path in ["/api/v1/leads/export", "/v1/leads/export", "/api/leads/export", "/leads/export"]:
         leads = get_leads_vault()
         csv_lines = [
             "Lead ID,Timestamp,Full Name,Email,Mobile,PAN,Employment Type,Monthly Income,Product,Requested Amount,Status,Max Eligible,Offered Amount,Rate,EMI,CIBIL"
@@ -980,7 +987,7 @@ def wsgi_app(environ, start_response):
         return [body]
 
     # 4. Policy Rules API
-    if path == "/api/v1/policy/rules":
+    if path in ["/api/v1/policy/rules", "/v1/policy/rules", "/api/policy/rules", "/policy/rules"]:
         body = json.dumps({
             "status": "SUCCESS",
             "bank": "Zenith Bank Limited",
@@ -994,7 +1001,7 @@ def wsgi_app(environ, start_response):
         return [body]
 
     # 5. Analytics Stats API
-    if path == "/api/v1/analytics/stats":
+    if path in ["/api/v1/analytics/stats", "/v1/analytics/stats", "/api/analytics/stats", "/analytics/stats"]:
         leads = get_leads_vault()
         stats = {
             "bank": "Zenith Bank Limited",
@@ -1024,7 +1031,8 @@ def wsgi_app(environ, start_response):
         except Exception:
             req_data = {}
 
-        if path in ["/api/v1/eligibility/check", "/api/v1/simulate/whatif"]:
+        if path in ["/api/v1/eligibility/check", "/v1/eligibility/check", "/api/eligibility/check", "/eligibility/check",
+                    "/api/v1/simulate/whatif", "/v1/simulate/whatif", "/api/simulate/whatif", "/simulate/whatif"]:
             applicant = req_data.get("applicant", req_data)
             result = evaluate_eligibility_py(applicant)
             body = json.dumps({
@@ -1040,7 +1048,7 @@ def wsgi_app(environ, start_response):
             start_response("200 OK", headers)
             return [body]
 
-        if path == "/api/v1/admin/test-email":
+        if path in ["/api/v1/admin/test-email", "/v1/admin/test-email", "/api/admin/test-email", "/admin/test-email"]:
             target_email = req_data.get("email", ADMIN_EMAIL)
             sample_applicant = {
                 "fullName": "Test Applicant (Verification)",
