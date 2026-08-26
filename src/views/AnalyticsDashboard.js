@@ -5,7 +5,6 @@
  */
 
 import { ConsentVault } from '../engine/accountAggregator.js';
-import { API_BASE_URL } from '../config.js';
 
 export class AnalyticsDashboardView {
   constructor(container, appState) {
@@ -312,16 +311,16 @@ export class AnalyticsDashboardView {
                 <span class="badge badge-success"><i class="icon-check"></i> Real-time Lead Notification Active</span>
                 <span class="text-xs text-muted">Configured in <code>.env</code> as <strong>ADMIN_EMAIL</strong></span>
               </div>
-              <h3 style="margin-top:6px; font-size:1.15rem;">Applicant Leads &amp; Instant Email Notifications</h3>
-              <p class="text-xs text-muted">All applicant profiles checking loan eligibility are instantly captured and emailed.</p>
+              <h3 style="margin-top:6px; font-size:1.15rem;">Applicant Leads &amp; Lead Capture Vault</h3>
+              <p class="text-xs text-muted">All applicant profiles checking loan eligibility in the portal are recorded here.</p>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <button class="btn btn-outline btn-sm" id="btn-test-lead-email">
-                <i class="icon-send"></i> Send Test Lead Email
+                <i class="icon-send"></i> Add Demo Lead
               </button>
-              <a href="${API_BASE_URL}/api/v1/leads/export" class="btn btn-primary btn-sm" id="btn-export-leads-csv" download="zenith_loan_leads.csv">
+              <button class="btn btn-primary btn-sm" id="btn-export-leads-csv">
                 <i class="icon-download"></i> Export Leads (CSV)
-              </a>
+              </button>
             </div>
           </div>
 
@@ -349,117 +348,144 @@ export class AnalyticsDashboardView {
 
       const btnTest = this.container.querySelector('#btn-test-lead-email');
       if (btnTest) {
-        btnTest.addEventListener('click', async () => {
-          try {
-            btnTest.disabled = true;
-            btnTest.textContent = 'Sending...';
-            const res = await fetch(`${API_BASE_URL}/api/v1/admin/test-email`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({})
-            });
-            const data = await res.json();
-            this.appState.showToast(data.message || 'Test lead alert sent!', 'success');
-          } catch (e) {
-            this.appState.showToast('Test lead alert logged to vault', 'info');
-          } finally {
-            btnTest.disabled = false;
-            btnTest.innerHTML = '<i class="icon-send"></i> Send Test Lead Email';
-            this.loadLiveLeadsTable();
-          }
+        btnTest.addEventListener('click', () => {
+          const demoLead = {
+            assessmentId: `ZEN-LEAD-${Date.now().toString().slice(-4)}`,
+            evaluatedAt: new Date().toISOString(),
+            status: 'PRE_APPROVED',
+            productName: 'Personal Loan',
+            requestedTerms: { amount: 650000, tenureMonths: 48 },
+            approvedOffer: { maxEligibleAmount: 1200000, offeredAmount: 650000, indicativeRate: 10.49, estimatedEmi: 16650 },
+            metrics: { cibilScore: 780, monthlyIncome: 80000 },
+            applicant: {
+              fullName: 'Ananya Verma (Demo)',
+              email: 'ananya.v@example.com',
+              mobile: '9876543210',
+              pan: 'ANAVP5678Q',
+              employmentType: 'Salaried',
+              monthlyIncome: 80000
+            }
+          };
+          this.appState.recordAssessment(demoLead);
+          this.appState.showToast('Demo lead captured & logged to Vault!', 'success');
+          this.loadLiveLeadsTable();
+        });
+      }
+
+      const btnExport = this.container.querySelector('#btn-export-leads-csv');
+      if (btnExport) {
+        btnExport.addEventListener('click', () => {
+          this.exportLeadsCsv();
         });
       }
     }
   }
 
-  async loadLiveLeadsTable() {
+  exportLeadsCsv() {
+    const assessments = this.appState.getRecordedAssessments() || [];
+    if (assessments.length === 0) {
+      this.appState.showToast('No leads available to export.', 'warning');
+      return;
+    }
+
+    const csvLines = [
+      'Assessment ID,Timestamp,Product,Status,Offered Amount,Max Eligible,EMI,Rate,CIBIL'
+    ];
+
+    assessments.forEach(a => {
+      const id = a.assessmentId || 'N/A';
+      const time = a.evaluatedAt || new Date().toISOString();
+      const prod = a.productName || 'Personal Loan';
+      const status = a.status || 'PRE_APPROVED';
+      const offer = a.approvedOffer || {};
+      const amount = offer.offeredAmount || 0;
+      const maxAmt = offer.maxEligibleAmount || 0;
+      const emi = offer.estimatedEmi || 0;
+      const rate = offer.indicativeRate || 0;
+      const cibil = a.metrics?.cibilScore || 'N/A';
+
+      csvLines.push(`"${id}","${time}","${prod}","${status}",${amount},${maxAmt},${emi},${rate},"${cibil}"`);
+    });
+
+    const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'zenith_loan_leads.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    this.appState.showToast('Leads CSV downloaded successfully!', 'success');
+  }
+
+  loadLiveLeadsTable() {
     const tableRoot = this.container.querySelector('#leads-table-container');
     if (!tableRoot) return;
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/leads`);
-      const data = await res.json();
-      const leads = data.leads || [];
+    const assessments = this.appState.getRecordedAssessments() || [];
 
-      if (leads.length === 0) {
-        tableRoot.innerHTML = `
-          <div style="text-align:center; padding:2.5rem; color:var(--text-muted);">
-            <div style="font-size:2rem; margin-bottom:8px;">📬</div>
-            <h4>No leads captured yet</h4>
-            <p class="text-xs mt-1">When users check their eligibility in the Retail Portal, their complete profile and contact information will appear here and be dispatched via email.</p>
-          </div>
-        `;
-        return;
-      }
-
+    if (assessments.length === 0) {
       tableRoot.innerHTML = `
-        <div class="table-responsive mt-2">
-          <table class="table-styled">
-            <thead>
-              <tr>
-                <th>Lead ID / Date</th>
-                <th>Applicant Contact</th>
-                <th>PAN &amp; Employment</th>
-                <th>Product &amp; Sizing</th>
-                <th>Decision Status</th>
-                <th>Offered Terms</th>
-                <th>Email Alert</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${leads.map(l => {
-                const app = l.applicant || {};
-                const req = l.loanRequest || {};
-                const out = l.assessmentOutcome || {};
-                const isApproved = out.status === 'PRE_APPROVED';
-                const isConditional = out.status === 'CONDITIONAL';
-                const badgeClass = isApproved ? 'badge-success' : (isConditional ? 'badge-warning' : 'badge-danger');
-
-                return `
-                  <tr>
-                    <td>
-                      <span class="text-mono text-xs" style="display:block; font-weight:700;">${l.leadId}</span>
-                      <small class="text-muted">${new Date(l.timestamp).toLocaleString()}</small>
-                    </td>
-                    <td>
-                      <strong>${app.fullName || 'Applicant'}</strong>
-                      <span class="text-xs text-muted" style="display:block;">${app.email ? `<a href="mailto:${app.email}" style="color:var(--bank-primary-light);">${app.email}</a>` : 'No Email'}</span>
-                      <span class="text-xs text-muted">${app.mobile ? `+91 ${app.mobile}` : 'No Mobile'}</span>
-                    </td>
-                    <td>
-                      <span class="text-mono text-xs">${app.pan || 'N/A'}</span>
-                      <small class="text-muted" style="display:block;">${app.employmentType || 'Salaried'} &bull; ₹${Number(app.monthlyIncome || 0).toLocaleString('en-IN')}/mo</small>
-                    </td>
-                    <td>
-                      <strong>${req.product || 'Personal Loan'}</strong>
-                      <small class="text-muted" style="display:block;">Req: ₹${Number(req.requestedAmount || 0).toLocaleString('en-IN')}</small>
-                      <small class="text-muted">Max: ₹${Number(out.maxEligibleAmount || 0).toLocaleString('en-IN')}</small>
-                    </td>
-                    <td>
-                      <span class="badge ${badgeClass}">${out.status}</span>
-                      <small class="text-muted" style="display:block; margin-top:2px;">CIBIL: <strong>${out.cibilScore || 'N/A'}</strong></small>
-                    </td>
-                    <td>
-                      <strong style="color:var(--success);">₹${Number(out.offeredAmount || 0).toLocaleString('en-IN')}</strong>
-                      <span class="text-xs text-muted" style="display:block;">₹${Number(out.estimatedEmi || 0).toLocaleString('en-IN')}/mo @ ${out.indicativeRate || 0}%</span>
-                    </td>
-                    <td>
-                      <span class="badge badge-success">Delivered</span>
-                      <small class="text-xs text-muted" style="display:block; font-size:0.68rem; margin-top:2px;">${l.notification?.targetEmail || 'ADMIN_EMAIL'}</small>
-                    </td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
+        <div style="text-align:center; padding:2.5rem; color:var(--text-muted);">
+          <div style="font-size:2rem; margin-bottom:8px;">📬</div>
+          <h4>No leads captured yet</h4>
+          <p class="text-xs mt-1">When users check their eligibility in the Retail Portal, their complete assessments and pre-approved offers will appear here.</p>
         </div>
       `;
-    } catch (e) {
-      tableRoot.innerHTML = `
-        <div style="text-align:center; padding:2rem; color:var(--text-muted);">
-          <p class="text-sm">Server offline. Showing recorded local assessments.</p>
-        </div>
-      `;
+      return;
     }
+
+    tableRoot.innerHTML = `
+      <div class="table-responsive mt-2">
+        <table class="table-styled">
+          <thead>
+            <tr>
+              <th>Lead / Assessment ID</th>
+              <th>Date &amp; Time</th>
+              <th>Product &amp; Request</th>
+              <th>Decision Status</th>
+              <th>Offered Terms</th>
+              <th>Credit Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${assessments.map(a => {
+              const isApproved = a.status === 'PRE_APPROVED';
+              const isConditional = a.status === 'CONDITIONAL';
+              const badgeClass = isApproved ? 'badge-success' : (isConditional ? 'badge-warning' : 'badge-danger');
+              const offer = a.approvedOffer || {};
+              const req = a.requestedTerms || {};
+
+              return `
+                <tr>
+                  <td>
+                    <span class="text-mono text-xs" style="display:block; font-weight:700;">${a.assessmentId || 'ZEN-APP'}</span>
+                    <small class="text-muted">${a.applicant?.fullName || 'Online Applicant'}</small>
+                  </td>
+                  <td>
+                    <small class="text-muted">${a.evaluatedAt ? new Date(a.evaluatedAt).toLocaleString() : 'Recent'}</small>
+                  </td>
+                  <td>
+                    <strong>${a.productName || 'Personal Loan'}</strong>
+                    <small class="text-muted" style="display:block;">Req: ₹${Number(req.amount || 0).toLocaleString('en-IN')}</small>
+                    <small class="text-muted">Max: ₹${Number(offer.maxEligibleAmount || 0).toLocaleString('en-IN')}</small>
+                  </td>
+                  <td>
+                    <span class="badge ${badgeClass}">${a.status}</span>
+                  </td>
+                  <td>
+                    <strong style="color:var(--success);">₹${Number(offer.offeredAmount || 0).toLocaleString('en-IN')}</strong>
+                    <span class="text-xs text-muted" style="display:block;">₹${Number(offer.estimatedEmi || 0).toLocaleString('en-IN')}/mo @ ${offer.indicativeRate || 0}%</span>
+                  </td>
+                  <td>
+                    <span class="badge badge-outline">${a.metrics?.cibilScore || 750}</span>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
   }
 }

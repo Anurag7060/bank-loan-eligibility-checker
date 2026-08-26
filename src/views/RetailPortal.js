@@ -7,7 +7,6 @@ import { DEFAULT_PRODUCT_POLICIES } from '../engine/productPolicies.js';
 import { evaluateEligibility, calculateEmi } from '../engine/eligibilityEngine.js';
 import { ConsentVault } from '../engine/accountAggregator.js';
 import { generateAdverseActionNotice } from '../engine/reasonCodes.js';
-import { API_BASE_URL } from '../config.js';
 
 export class RetailPortalView {
   constructor(container, appState) {
@@ -602,28 +601,7 @@ export class RetailPortalView {
 
     try {
       const policies = this.appState.getPolicies();
-      let evalResult = null;
-
-      // Call backend API to trigger real-time email notification & lead capture
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/eligibility/check`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ applicant: this.formData })
-        });
-        if (response.ok) {
-          const apiJson = await response.json();
-          if (apiJson.status === 'SUCCESS' && apiJson.data) {
-            evalResult = apiJson.data;
-          }
-        }
-      } catch (e) {
-        console.warn('Backend API offline, evaluating locally:', e);
-      }
-
-      if (!evalResult) {
-        evalResult = evaluateEligibility(this.formData, policies);
-      }
+      const evalResult = evaluateEligibility(this.formData, policies);
 
       this.lastEvaluation = evalResult;
       this.appState.recordAssessment(this.lastEvaluation);

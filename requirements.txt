@@ -1,9 +1,0 @@
-# Zenith Bank - Loan Eligibility Checking System (LES)
-# Python Backend Dependencies
-
-# Optional production WSGI server (for Linux container deployments)
-gunicorn>=21.2.0
-
-# Optional development & testing utilities
-urllib3>=2.0.0
-pytest>=8.0.0
