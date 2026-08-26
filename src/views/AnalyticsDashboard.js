@@ -5,6 +5,7 @@
  */
 
 import { ConsentVault } from '../engine/accountAggregator.js';
+import { API_BASE_URL } from '../config.js';
 
 export class AnalyticsDashboardView {
   constructor(container, appState) {
@@ -318,7 +319,7 @@ export class AnalyticsDashboardView {
               <button class="btn btn-outline btn-sm" id="btn-test-lead-email">
                 <i class="icon-send"></i> Send Test Lead Email
               </button>
-              <a href="/api/v1/leads/export" class="btn btn-primary btn-sm" id="btn-export-leads-csv" download="zenith_loan_leads.csv">
+              <a href="${API_BASE_URL}/api/v1/leads/export" class="btn btn-primary btn-sm" id="btn-export-leads-csv" download="zenith_loan_leads.csv">
                 <i class="icon-download"></i> Export Leads (CSV)
               </a>
             </div>
@@ -352,7 +353,7 @@ export class AnalyticsDashboardView {
           try {
             btnTest.disabled = true;
             btnTest.textContent = 'Sending...';
-            const res = await fetch('/api/v1/admin/test-email', {
+            const res = await fetch(`${API_BASE_URL}/api/v1/admin/test-email`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({})
@@ -376,7 +377,7 @@ export class AnalyticsDashboardView {
     if (!tableRoot) return;
 
     try {
-      const res = await fetch('/api/v1/leads');
+      const res = await fetch(`${API_BASE_URL}/api/v1/leads`);
       const data = await res.json();
       const leads = data.leads || [];
 

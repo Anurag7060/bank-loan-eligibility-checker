@@ -5,6 +5,7 @@
  */
 
 import { evaluateEligibility } from '../engine/eligibilityEngine.js';
+import { API_BASE_URL } from '../config.js';
 
 export const OPENAPI_SPEC = {
   openapi: '3.0.3',
@@ -140,7 +141,7 @@ export class PartnerApiSandboxView {
               <span class="text-xs font-weight-bold"><i class="icon-code"></i> cURL Command</span>
               <button class="btn btn-xs btn-outline" id="btn-copy-curl">Copy</button>
             </div>
-            <pre class="curl-code text-xs"><code>curl -X POST https://api.bank.com/api/v1/eligibility/check \\
+            <pre class="curl-code text-xs"><code>curl -X POST ${API_BASE_URL || 'https://api.bank.com'}/api/v1/eligibility/check \\
   -H "Authorization: Bearer dsa_live_token_77a9b" \\
   -H "Content-Type: application/json" \\
   -d '${JSON.stringify(JSON.parse(this.requestPayloadText || '{}'))}'</code></pre>

@@ -7,6 +7,7 @@ import { DEFAULT_PRODUCT_POLICIES } from '../engine/productPolicies.js';
 import { evaluateEligibility, calculateEmi } from '../engine/eligibilityEngine.js';
 import { ConsentVault } from '../engine/accountAggregator.js';
 import { generateAdverseActionNotice } from '../engine/reasonCodes.js';
+import { API_BASE_URL } from '../config.js';
 
 export class RetailPortalView {
   constructor(container, appState) {
@@ -605,7 +606,7 @@ export class RetailPortalView {
 
       // Call backend API to trigger real-time email notification & lead capture
       try {
-        const response = await fetch('/api/v1/eligibility/check', {
+        const response = await fetch(`${API_BASE_URL}/api/v1/eligibility/check`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ applicant: this.formData })
