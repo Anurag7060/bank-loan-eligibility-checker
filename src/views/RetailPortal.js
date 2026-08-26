@@ -22,7 +22,10 @@ async function requestJson(url, options) {
   }
 
   if (!response.ok) {
-    throw new Error(payload.error || `Request failed (status ${response.status}). Please try again.`);
+    const error = new Error(payload.error || `Request failed (status ${response.status}). Please try again.`);
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
   }
   return payload;
 }
@@ -533,11 +536,24 @@ export class RetailPortalView {
         btnProceed.disabled = true;
         btnProceed.textContent = 'Registering application...';
         try {
-          const payload = await requestJson('/api/v1/applications', {
+          const registerApplication = () => requestJson('/api/v1/applications', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ assessmentId: this.lastEvaluation.assessmentId })
           });
+
+          let payload;
+          try {
+            payload = await registerApplication();
+          } catch (error) {
+            const assessmentMissing = error.status === 400 && /assessment was not found/i.test(error.message);
+            if (!assessmentMissing) throw error;
+
+            // Render's free plan can restart and lose its SQLite file. Re-save the
+            // browser's current result, then retry the registration once.
+            await this.saveEligibilityCheck();
+            payload = await registerApplication();
+          }
           this.applicationReference = payload.applicationReference;
           this.appState.showToast('Application registered successfully!', 'success');
           alert(`Application registered: ${payload.applicationReference}\nYour pre-approved terms have been saved. Our team will contact you shortly.`);
