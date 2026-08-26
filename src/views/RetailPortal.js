@@ -8,6 +8,25 @@ import { evaluateEligibility, calculateEmi } from '../engine/eligibilityEngine.j
 import { ConsentVault } from '../engine/accountAggregator.js';
 import { generateAdverseActionNotice } from '../engine/reasonCodes.js';
 
+async function requestJson(url, options) {
+  const response = await fetch(url, options);
+  const body = await response.text();
+  let payload = {};
+
+  try {
+    payload = body ? JSON.parse(body) : {};
+  } catch {
+    throw new Error(response.ok
+      ? 'The server returned an unexpected response. Please refresh the page and try again.'
+      : `The server is temporarily unavailable (status ${response.status}). Please wait a moment and try again.`);
+  }
+
+  if (!response.ok) {
+    throw new Error(payload.error || `Request failed (status ${response.status}). Please try again.`);
+  }
+  return payload;
+}
+
 export class RetailPortalView {
   constructor(container, appState) {
     this.container = container;
@@ -514,13 +533,11 @@ export class RetailPortalView {
         btnProceed.disabled = true;
         btnProceed.textContent = 'Registering application...';
         try {
-          const response = await fetch('/api/v1/applications', {
+          const payload = await requestJson('/api/v1/applications', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ assessmentId: this.lastEvaluation.assessmentId })
           });
-          const payload = await response.json();
-          if (!response.ok) throw new Error(payload.error || 'Unable to start your application.');
           this.applicationReference = payload.applicationReference;
           this.appState.showToast('Application registered successfully!', 'success');
           alert(`Application registered: ${payload.applicationReference}\nYour pre-approved terms have been saved. Our team will contact you shortly.`);
@@ -639,13 +656,11 @@ export class RetailPortalView {
 
   async saveEligibilityCheck() {
     this.checkPersisted = false;
-    const response = await fetch('/api/v1/eligibility/check', {
+    await requestJson('/api/v1/eligibility/check', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ applicant: this.formData, result: this.lastEvaluation })
     });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || 'Unable to save eligibility check.');
     this.checkPersisted = true;
   }
 
