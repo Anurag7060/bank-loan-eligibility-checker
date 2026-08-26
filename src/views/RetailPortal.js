@@ -80,9 +80,11 @@ export class RetailPortalView {
 
       <div id="consent-modal-root"></div>
       <div id="document-modal-root"></div>
+      <div id="application-success-modal-root"></div>
     `;
 
     this.attachEventListeners();
+    if (this.applicationReference) this.showApplicationSuccessModal();
   }
 
   renderFormFlow() {
@@ -489,6 +491,7 @@ export class RetailPortalView {
     if (btnReEval) {
       btnReEval.addEventListener('click', () => {
         this.lastEvaluation = null;
+        this.applicationReference = null;
         this.currentStep = 1;
         this.render();
       });
@@ -555,8 +558,8 @@ export class RetailPortalView {
             payload = await registerApplication();
           }
           this.applicationReference = payload.applicationReference;
+          this.render();
           this.appState.showToast('Application registered successfully!', 'success');
-          alert(`Application registered: ${payload.applicationReference}\nYour pre-approved terms have been saved. Our team will contact you shortly.`);
         } catch (error) {
           this.appState.showToast(error.message || 'Unable to register the application. Please try again.', 'warning');
           btnProceed.disabled = false;
@@ -678,6 +681,35 @@ export class RetailPortalView {
       body: JSON.stringify({ applicant: this.formData, result: this.lastEvaluation })
     });
     this.checkPersisted = true;
+  }
+
+  showApplicationSuccessModal() {
+    const root = this.container.querySelector('#application-success-modal-root');
+    if (!root || !this.applicationReference) return;
+
+    root.innerHTML = `
+      <div class="modal-overlay">
+        <div class="modal-dialog" style="max-width:420px; text-align:center;">
+          <div class="modal-body-content" style="padding:2rem 1.5rem 1.25rem;">
+            <div style="width:52px; height:52px; display:grid; place-items:center; margin:0 auto 1rem; border-radius:50%; background:rgba(32, 168, 99, 0.15); color:var(--success); font-size:1.65rem; font-weight:800;">✓</div>
+            <h3 style="font-size:1.2rem; margin-bottom:0.5rem;">Applied Successfully!</h3>
+            <p class="text-sm text-muted">Your loan application has been registered. Our team will contact you shortly.</p>
+            <div style="margin-top:1.25rem; padding:0.85rem; border:1px dashed var(--border-color); border-radius:var(--radius-sm); background:var(--bg-input);">
+              <div class="text-xs text-muted">Application Reference</div>
+              <strong style="display:block; margin-top:4px; color:var(--bank-gold); letter-spacing:0.04em;">${this.applicationReference}</strong>
+            </div>
+          </div>
+          <div class="modal-footer-bar" style="justify-content:center;">
+            <button class="btn btn-success" id="btn-close-application-success">Done</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    root.querySelector('#btn-close-application-success').addEventListener('click', () => {
+      this.applicationReference = null;
+      root.innerHTML = '';
+    });
   }
 
   showKfsModal(evaluation) {
