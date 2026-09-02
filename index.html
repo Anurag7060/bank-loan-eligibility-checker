@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,14 +13,9 @@
   <!-- Utility Bar -->
   <div class="bank-utility-bar">
     <div class="utility-container">
-      <div class="utility-left">
-        <span>Toll-Free: <strong>1800 209 8888</strong></span>
-        <span>5,400+ Branches</span>
-        <span>RBI Licensed</span>
-      </div>
+      <div class="utility-left"><span>Loan eligibility checker</span></div>
       <div class="utility-right">
-        <span class="text-xs">256-Bit Secured</span>
-        <a href="#" class="utility-link" onclick="alert('Redirecting to NetBanking...'); return false;">NetBanking</a>
+        <span class="text-xs">For demonstration only</span>
       </div>
     </div>
   </div>
@@ -32,7 +27,7 @@
         <div class="bank-crest">Z</div>
         <div class="bank-title-group">
           <h1>ZENITH BANK</h1>
-          <span class="bank-tagline">Loan Eligibility &amp; Pre-Qualification Portal</span>
+          <span class="bank-tagline">Loan eligibility portal</span>
         </div>
       </a>
 
@@ -63,7 +58,6 @@
         </button>
       </nav>
 
-      <div id="auth-controls" style="display:flex; align-items:center; gap:8px;"></div>
       <button id="btn-theme-toggle" class="btn btn-xs btn-outline" title="Toggle theme">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
@@ -79,33 +73,29 @@
       <div class="footer-cols">
         <div>
           <strong>Zenith Bank Limited</strong>
-          <p class="text-xs mt-2" style="color:var(--text-muted)">Scheduled Commercial Bank &mdash; Reserve Bank of India</p>
-          <p class="text-xs mt-1" style="color:var(--text-dim)">Regd. Office: Zenith Towers, C-60 G Block, BKC, Mumbai 400051</p>
-          <p class="text-xs mt-1" style="color:var(--text-dim)">CIN: L65110MH1994PLC080880</p>
+          <p class="text-xs mt-2" style="color:var(--text-muted)">Loan eligibility portal project</p>
+          <p class="text-xs mt-1" style="color:var(--text-dim)">Indicative results based on the information entered.</p>
         </div>
         <div>
           <strong class="text-sm">Policies</strong>
           <ul class="footer-nav-list">
-            <li><a href="#" onclick="alert('RBI Fair Practices Code'); return false;">Fair Practices Code</a></li>
-            <li><a href="#" onclick="alert('EBLR pegged to Repo Rate 6.50%'); return false;">EBLR Disclosure</a></li>
-            <li><a href="#" onclick="alert('DPDP Act 2023 Privacy Notice'); return false;">Privacy Notice</a></li>
-            <li><a href="#" onclick="alert('Banking Ombudsman Scheme'); return false;">Ombudsman</a></li>
+            <li><a href="#" onclick="alert('Eligibility results are indicative only.'); return false;">Eligibility note</a></li>
+            <li><a href="#" onclick="alert('Use sample data only for this project.'); return false;">Privacy note</a></li>
           </ul>
         </div>
         <div>
-          <strong class="text-sm">Compliance</strong>
-          <p class="text-xs mt-2" style="color:var(--text-muted)">ISO 27001 &bull; 256-Bit SSL &bull; Soft-Pull Only</p>
-          <p class="text-xs mt-2" style="color:var(--text-dim)">Eligibility results are indicative pre-qualifications. Formal sanction subject to full underwriting in the Loan Origination System.</p>
+          <strong class="text-sm">About this portal</strong>
+          <p class="text-xs mt-2" style="color:var(--text-muted)">A local project for exploring loan eligibility calculations.</p>
+          <p class="text-xs mt-2" style="color:var(--text-dim)">It is not connected to a real bank, credit bureau, or payment system.</p>
         </div>
       </div>
       <div class="footer-bottom">
-        &copy; 2026 Zenith Bank Limited. Member of Indian Banks' Association.
+        &copy; 2026 Zenith Loan Portal
       </div>
     </div>
   </footer>
 
   <div id="toast-container" aria-live="polite"></div>
-  <div id="auth-modal-root"></div>
   <script type="module" src="src/app.js"></script>
 </body>
 </html>

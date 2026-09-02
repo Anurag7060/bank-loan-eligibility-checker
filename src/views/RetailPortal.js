@@ -64,9 +64,9 @@ export class RetailPortalView {
   render() {
     this.container.innerHTML = `
       <div class="page-header" style="text-align:center; margin-bottom:1.5rem;">
-        <span class="badge badge-success" style="margin-bottom:8px;">Zero Impact on Credit Score &bull; Instant Results</span>
-        <h2 class="page-title">Check Your Loan Eligibility</h2>
-        <p class="page-subtitle">Find out how much you can borrow, your EMI, and interest rate in seconds.</p>
+        <span class="badge badge-success" style="margin-bottom:8px;">Quick estimate</span>
+        <h2 class="page-title">Check loan eligibility</h2>
+        <p class="page-subtitle">Enter your details to see an indicative amount, EMI, and interest rate.</p>
       </div>
 
       <div class="grid-2col">
@@ -122,7 +122,7 @@ export class RetailPortalView {
             ${this.currentStep < 3 ? `
               <button type="button" class="btn btn-primary" id="btn-step-next">Continue &rarr;</button>
             ` : `
-              <button type="button" class="btn btn-success" id="btn-submit-evaluation">Check Eligibility (Soft Pull)</button>
+              <button type="button" class="btn btn-success" id="btn-submit-evaluation">Check eligibility</button>
             `}
           </div>
         </form>
@@ -486,15 +486,6 @@ export class RetailPortalView {
     if (btnSubmit) {
       btnSubmit.addEventListener('click', () => {
         this.syncFormData();
-        if (!this.appState.currentUser) {
-          this.appState.showToast('Create or sign in to an account first. We will verify your email before saving your enquiry.', 'warning');
-          this.appState.openAuth?.();
-          return;
-        }
-        if (this.formData.email.toLowerCase() !== this.appState.currentUser.email.toLowerCase()) {
-          this.appState.showToast('Use the same email address as your signed-in account.', 'warning');
-          return;
-        }
         this.showConsentModal();
       });
     }
@@ -548,11 +539,6 @@ export class RetailPortalView {
     const btnProceed = this.container.querySelector('#btn-proceed-los');
     if (btnProceed) {
       btnProceed.addEventListener('click', async () => {
-        if (!this.appState.currentUser) {
-          this.appState.showToast('Please sign in before submitting an application.', 'warning');
-          this.appState.openAuth?.();
-          return;
-        }
         btnProceed.disabled = true;
         btnProceed.innerHTML = '<span class="btn-spinner"></span> Submitting Application...';
         try {
@@ -566,7 +552,6 @@ export class RetailPortalView {
           try {
             payload = await registerApplication();
           } catch (error) {
-            if (error.status === 401) throw error;
             const assessmentMissing = error.status === 400 && /assessment was not found/i.test(error.message);
             if (assessmentMissing) {
               await this.saveEligibilityCheck();
@@ -669,11 +654,6 @@ export class RetailPortalView {
   }
 
   async runEvaluation() {
-    if (!this.appState.currentUser) {
-      this.appState.showToast('Please sign in before checking eligibility.', 'warning');
-      this.appState.openAuth?.();
-      return;
-    }
     this.container.querySelector('.portal-main').innerHTML = `
       <div class="bank-card" style="text-align:center; padding:3rem;">
         <div style="width:40px; height:40px; border:3px solid var(--border-color); border-top-color:var(--bank-gold); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto;"></div>

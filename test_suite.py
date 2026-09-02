@@ -42,18 +42,6 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(server.masked_pan("ANAPS1234K"), "AN******4K")
         self.assertEqual(server.masked_mobile("9876543210"), "******3210")
 
-    def test_password_hashes_are_salted_and_verifiable(self):
-        first = server.password_hash("correct horse battery staple")
-        second = server.password_hash("correct horse battery staple")
-        self.assertNotEqual(first, second)
-        self.assertTrue(server.password_matches("correct horse battery staple", first))
-        self.assertFalse(server.password_matches("wrong password", first))
-
-    def test_database_includes_authentication_tables(self):
-        with server.db_connection() as db:
-            tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        self.assertTrue({"users", "auth_tokens", "sessions"}.issubset(tables))
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
