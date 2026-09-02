@@ -9,6 +9,7 @@ import { PolicyManagerView } from './views/PolicyManager.js';
 import { UnderwriterQueueView } from './views/UnderwriterQueue.js';
 import { PartnerApiSandboxView } from './views/PartnerApiSandbox.js';
 import { AnalyticsDashboardView } from './views/AnalyticsDashboard.js';
+import { AuthController } from './auth.js';
 
 class AppState {
   constructor() {
@@ -18,6 +19,7 @@ class AppState {
     this.underwriterCases = this.loadUnderwriterCases();
     this.assessments = this.loadAssessments();
     this.activeView = 'retail';
+    this.currentUser = null;
   }
 
   // --- Policy State ---
@@ -213,6 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
     partner_api: new PartnerApiSandboxView(mainContent, appState),
     analytics: new AnalyticsDashboardView(mainContent, appState)
   };
+  const auth = new AuthController(appState);
+  appState.openAuth = () => auth.open();
 
   const switchView = (viewName) => {
     if (!views[viewName]) return;
@@ -248,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initial View Render
+  // Initial view is available immediately; session status is then restored in the background.
   switchView('retail');
+  auth.init();
 });

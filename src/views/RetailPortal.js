@@ -486,6 +486,15 @@ export class RetailPortalView {
     if (btnSubmit) {
       btnSubmit.addEventListener('click', () => {
         this.syncFormData();
+        if (!this.appState.currentUser) {
+          this.appState.showToast('Create or sign in to an account first. We will verify your email before saving your enquiry.', 'warning');
+          this.appState.openAuth?.();
+          return;
+        }
+        if (this.formData.email.toLowerCase() !== this.appState.currentUser.email.toLowerCase()) {
+          this.appState.showToast('Use the same email address as your signed-in account.', 'warning');
+          return;
+        }
         this.showConsentModal();
       });
     }
@@ -539,6 +548,11 @@ export class RetailPortalView {
     const btnProceed = this.container.querySelector('#btn-proceed-los');
     if (btnProceed) {
       btnProceed.addEventListener('click', async () => {
+        if (!this.appState.currentUser) {
+          this.appState.showToast('Please sign in before submitting an application.', 'warning');
+          this.appState.openAuth?.();
+          return;
+        }
         btnProceed.disabled = true;
         btnProceed.innerHTML = '<span class="btn-spinner"></span> Submitting Application...';
         try {
@@ -552,6 +566,7 @@ export class RetailPortalView {
           try {
             payload = await registerApplication();
           } catch (error) {
+            if (error.status === 401) throw error;
             const assessmentMissing = error.status === 400 && /assessment was not found/i.test(error.message);
             if (assessmentMissing) {
               await this.saveEligibilityCheck();
@@ -567,10 +582,7 @@ export class RetailPortalView {
           this.showApplicationSuccessModal();
           this.appState.showToast('Application registered successfully!', 'success');
         } catch (error) {
-          const rndNum = Math.floor(100000 + Math.random() * 900000);
-          this.applicationReference = `ZB-APP-2026-${rndNum}`;
-          this.showApplicationSuccessModal();
-          this.appState.showToast('Application registered successfully!', 'success');
+          this.appState.showToast(error.message || 'We could not submit your application. Please try again.', 'warning');
         } finally {
           btnProceed.disabled = false;
           btnProceed.innerHTML = `
@@ -657,6 +669,11 @@ export class RetailPortalView {
   }
 
   async runEvaluation() {
+    if (!this.appState.currentUser) {
+      this.appState.showToast('Please sign in before checking eligibility.', 'warning');
+      this.appState.openAuth?.();
+      return;
+    }
     this.container.querySelector('.portal-main').innerHTML = `
       <div class="bank-card" style="text-align:center; padding:3rem;">
         <div style="width:40px; height:40px; border:3px solid var(--border-color); border-top-color:var(--bank-gold); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto;"></div>
