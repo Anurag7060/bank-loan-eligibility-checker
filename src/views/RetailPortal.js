@@ -9,16 +9,22 @@ import { ConsentVault } from '../engine/accountAggregator.js';
 import { generateAdverseActionNotice } from '../engine/reasonCodes.js';
 
 async function requestJson(url, options) {
-  const response = await fetch(url, options);
+  let response;
+  try {
+    response = await fetch(url, options);
+  } catch {
+    throw new Error('Cannot reach the local portal server. Open http://127.0.0.1:8080 and refresh the page.');
+  }
   const body = await response.text();
   let payload = {};
 
   try {
     payload = body ? JSON.parse(body) : {};
   } catch {
-    throw new Error(response.ok
-      ? 'The server returned an unexpected response. Please refresh the page and try again.'
-      : `The server is temporarily unavailable (status ${response.status}). Please wait a moment and try again.`);
+    const isLocalPortal = window.location.hostname === '127.0.0.1' && window.location.port === '8080';
+    throw new Error(isLocalPortal
+      ? `The local server returned an unexpected response (status ${response.status}). Please refresh and try again.`
+      : 'This page is not connected to the local backend. Open http://127.0.0.1:8080 to submit an application.');
   }
 
   if (!response.ok) {
@@ -57,6 +63,7 @@ export class RetailPortalView {
     };
     this.lastEvaluation = null;
     this.checkPersisted = false;
+    this.saveError = '';
     this.applicationReference = null;
     this.isEvaluating = false;
   }
@@ -674,9 +681,13 @@ export class RetailPortalView {
         await this.saveEligibilityCheck();
       } catch (saveError) {
         console.error('Eligibility save error:', saveError);
+        this.saveError = saveError.message || 'The enquiry could not be saved.';
       }
       this.render();
-      this.appState.showToast(this.checkPersisted ? 'Your loan offer is ready!' : 'Your offer is ready. We could not save your enquiry.', this.checkPersisted ? 'success' : 'warning');
+      this.appState.showToast(
+        this.checkPersisted ? 'Your loan offer is ready!' : `Your offer is ready, but it was not saved: ${this.saveError}`,
+        this.checkPersisted ? 'success' : 'warning'
+      );
     } catch (err) {
       console.error('Evaluation error:', err);
       this.render();
@@ -686,6 +697,7 @@ export class RetailPortalView {
 
   async saveEligibilityCheck() {
     this.checkPersisted = false;
+    this.saveError = '';
     await requestJson('/api/v1/eligibility/check', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
