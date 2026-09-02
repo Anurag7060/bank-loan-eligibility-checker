@@ -163,11 +163,11 @@ def send_email(recipient, subject, body):
         return False, str(error)
 
 
-def send_notification(subject, body):
-    """Send an owner alert when an owner address is configured."""
-    recipient = os.getenv("OWNER_NOTIFICATION_EMAIL", "").strip()
+def send_relationship_manager_notification(subject, body):
+    """Notify the assigned relationship manager; retain the legacy owner setting as a fallback."""
+    recipient = os.getenv("RELATIONSHIP_MANAGER_EMAIL", os.getenv("OWNER_NOTIFICATION_EMAIL", "")).strip()
     if not recipient:
-        return False, "Owner email is not configured"
+        return False, "Relationship manager email is not configured"
     return send_email(recipient, subject, body)
 
 
@@ -181,6 +181,18 @@ def eligibility_email(applicant, check):
         f"Monthly income: INR {check['monthlyIncome']:,}", f"Existing EMIs: INR {check['existingEmis']:,}",
         f"Decision: {check['status']}", f"Eligible offer: INR {check['offerAmount']:,}",
         f"Assessment ID: {check['assessmentId']}",
+    ))
+
+
+def customer_application_email(applicant, reference):
+    return "Application received", "\n".join((
+        f"Hello {applicant['full_name']},", "",
+        "We have received your loan application.",
+        f"Application reference: {reference}",
+        f"Loan product: {applicant['loan_product']}",
+        f"Requested amount: INR {applicant['requested_amount']:,}", "",
+        "Please keep this reference for future communication. Our relationship manager will contact you after reviewing the application.",
+        "", "This is an acknowledgement only and not a loan approval.",
     ))
 
 
@@ -250,7 +262,7 @@ class PortalHandler(SimpleHTTPRequestHandler):
                      check["monthlyIncome"], check["existingEmis"], check["status"], check["offerAmount"], check["indicativeRate"],
                      json.dumps(result, separators=(",", ":")), now()))
                 check_id = cursor.lastrowid
-            sent, warning = send_notification(f"Loan eligibility check: {applicant['full_name']}", eligibility_email(applicant, check))
+            sent, warning = send_relationship_manager_notification(f"Loan eligibility check: {applicant['full_name']}", eligibility_email(applicant, check))
             self.respond_json(HTTPStatus.CREATED, {"id": check_id, "assessmentId": assessment_id, "notificationSent": sent, "notificationWarning": warning})
         except (ValueError, TypeError) as error:
             self.respond_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
@@ -279,8 +291,15 @@ class PortalHandler(SimpleHTTPRequestHandler):
             body = "\n".join(("A customer started a loan application.", "", f"Application reference: {reference}",
                 f"Name: {applicant['full_name']}", f"Email: {applicant['email']}", f"Mobile: {masked_mobile(applicant['mobile'])}",
                 f"PAN: {masked_pan(applicant['pan'])}", f"Product: {applicant['loan_product']}", f"Requested amount: INR {applicant['requested_amount']:,}", f"Eligibility outcome: {applicant['decision_status']}"))
-            sent, warning = send_notification(f"New loan application: {reference}", body)
-            self.respond_json(HTTPStatus.CREATED, {"applicationReference": reference, "notificationSent": sent, "notificationWarning": warning})
+            manager_sent, manager_warning = send_relationship_manager_notification(f"New loan application: {reference}", body)
+            customer_sent, customer_warning = send_email(applicant["email"], *customer_application_email(applicant, reference))
+            self.respond_json(HTTPStatus.CREATED, {
+                "applicationReference": reference,
+                "relationshipManagerEmailSent": manager_sent,
+                "relationshipManagerEmailWarning": manager_warning,
+                "customerEmailSent": customer_sent,
+                "customerEmailWarning": customer_warning,
+            })
         except ValueError as error:
             self.respond_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
         except sqlite3.IntegrityError:

@@ -557,15 +557,16 @@ export class RetailPortalView {
               await this.saveEligibilityCheck();
               payload = await registerApplication();
             } else {
-              // Graceful fallback reference for demo/offline resilience
-              const rndNum = Math.floor(100000 + Math.random() * 900000);
-              const prefix = this.formData.pan ? this.formData.pan.slice(0, 4) : 'ZB';
-              payload = { applicationReference: `${prefix}-APP-2026-${rndNum}` };
+              throw error;
             }
           }
           this.applicationReference = payload.applicationReference;
           this.showApplicationSuccessModal();
-          this.appState.showToast('Application registered successfully!', 'success');
+          const emailsSent = payload.customerEmailSent && payload.relationshipManagerEmailSent;
+          this.appState.showToast(
+            emailsSent ? 'Application submitted. Confirmation email sent.' : 'Application submitted. Email notification could not be sent.',
+            emailsSent ? 'success' : 'warning'
+          );
         } catch (error) {
           this.appState.showToast(error.message || 'We could not submit your application. Please try again.', 'warning');
         } finally {

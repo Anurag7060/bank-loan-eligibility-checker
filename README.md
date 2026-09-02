@@ -7,7 +7,7 @@ A college-project-ready loan eligibility website with a responsive frontend, SQL
 - Customer eligibility form and instant indicative result
 - Persistent SQLite records for applicants, eligibility checks, and applications
 - Real application reference when a user selects **Apply Online**
-- Optional immediate email alerts to the project owner
+- Automatic application acknowledgement to the applicant and lead alert to the relationship manager
 - Protected admin summary API for a demo dashboard
 - Docker packaging and automated backend checks
 
@@ -27,12 +27,12 @@ Run checks with:
 python test_suite.py
 ```
 
-## Configure email alerts (optional)
+## Configure application emails (optional)
 
-No email account is required for the project to run. To enable alerts, copy `.env.example` to `.env`, then set:
+No email account is required for the project to run. To send an application receipt to the applicant and lead details to the relationship manager, copy `.env.example` to `.env`, then set:
 
 ```dotenv
-OWNER_NOTIFICATION_EMAIL=your-email@example.com
+RELATIONSHIP_MANAGER_EMAIL=relationship-manager@example.com
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USERNAME=your-email@example.com
@@ -43,6 +43,8 @@ SMTP_FROM=Zenith Loan Portal <your-email@example.com>
 For Gmail, enable two-step verification and create an App Password. Never commit `.env`.
 
 Notifications include applicant and loan-request details but mask PAN and mobile values. Full records remain in the local SQLite database.
+
+When an application is submitted, the applicant receives a confirmation with the application reference. The relationship manager receives the lead details, including masked PAN and mobile number.
 
 ## Admin summary API
 

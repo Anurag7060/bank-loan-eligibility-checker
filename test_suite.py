@@ -42,6 +42,15 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(server.masked_pan("ANAPS1234K"), "AN******4K")
         self.assertEqual(server.masked_mobile("9876543210"), "******3210")
 
+    def test_customer_application_email_includes_reference_not_sensitive_identifiers(self):
+        subject, body = server.customer_application_email({
+            "full_name": "Anaya Sharma", "loan_product": "Personal Loan", "requested_amount": 500000,
+        }, "APP-20260902-000001")
+        self.assertEqual(subject, "Application received")
+        self.assertIn("APP-20260902-000001", body)
+        self.assertNotIn("PAN", body)
+        self.assertNotIn("mobile", body.lower())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
