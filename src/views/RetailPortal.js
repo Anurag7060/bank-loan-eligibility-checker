@@ -19,11 +19,14 @@ function apiUrl(path) {
 }
 
 async function requestJson(url, options) {
+  const isLocalPage = ['localhost', '127.0.0.1'].includes(window.location.hostname);
   let response;
   try {
     response = await fetch(apiUrl(url), options);
   } catch {
-    throw new Error('Cannot reach the local portal server. Open http://127.0.0.1:8080 and refresh the page.');
+    throw new Error(isLocalPage
+      ? 'Cannot reach the local portal server. Open http://127.0.0.1:8080 and refresh the page.'
+      : 'Cannot reach the portal service. Check your connection and try again.');
   }
   const body = await response.text();
   let payload = {};
@@ -34,7 +37,7 @@ async function requestJson(url, options) {
     const isLocalPortal = window.location.hostname === '127.0.0.1' && window.location.port === '8080';
     throw new Error(isLocalPortal
       ? `The local server returned an unexpected response (status ${response.status}). Please refresh and try again.`
-      : 'This page is not connected to the local backend. Open http://127.0.0.1:8080 to submit an application.');
+      : `The portal service returned an unexpected response (status ${response.status}). Please refresh and try again.`);
   }
 
   if (!response.ok) {
