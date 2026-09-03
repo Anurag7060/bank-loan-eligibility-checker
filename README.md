@@ -66,6 +66,16 @@ docker compose up --build
 
 This starts the portal at [http://localhost:8080](http://localhost:8080) and persists its SQLite database in a Docker volume.
 
+## Render (free deployment)
+
+This repository includes `render.yaml` for a Docker web service. In Render,
+create a **Blueprint** from the GitHub repository and select the `main` branch.
+The frontend and API are served by the same service, so no separate backend URL
+is required. The included free-plan configuration stores SQLite data in an
+ephemeral filesystem; submissions are cleared whenever Render restarts or
+redeploys the service. Use a paid persistent disk or a managed database before
+using this beyond a demo.
+
 ## API endpoints
 
 | Method | Endpoint | Purpose |

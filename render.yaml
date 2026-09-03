@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: bank-loan-eligibility-checker
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "10000"
+      # Free Render instances have an ephemeral filesystem. This keeps the
+      # SQLite file outside the application source and makes that limitation explicit.
+      - key: DATABASE_PATH
+        value: /tmp/loan_portal.db

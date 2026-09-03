@@ -201,6 +201,13 @@ class PortalHandler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
     def end_headers(self):
+        # Allow the frontend to be opened through a local development server
+        # while this Python process continues to own the API on port 8080.
+        origin = self.headers.get("Origin", "")
+        origin_host = urlparse(origin).hostname
+        if origin_host in {"localhost", "127.0.0.1"}:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
@@ -221,6 +228,13 @@ class PortalHandler(SimpleHTTPRequestHandler):
         if path == "/api/v1/applications":
             return self.create_application()
         self.respond_json(HTTPStatus.NOT_FOUND, {"error": "Endpoint not found"})
+
+    def do_OPTIONS(self):
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Admin-Key")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
 
     def read_json(self):
         try:

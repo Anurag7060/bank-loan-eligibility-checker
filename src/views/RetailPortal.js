@@ -8,10 +8,20 @@ import { evaluateEligibility, calculateEmi } from '../engine/eligibilityEngine.j
 import { ConsentVault } from '../engine/accountAggregator.js';
 import { generateAdverseActionNotice } from '../engine/reasonCodes.js';
 
+const LOCAL_BACKEND_ORIGIN = 'http://127.0.0.1:8080';
+
+function apiUrl(path) {
+  // When the frontend is served by a development/static server (for example
+  // VS Code Live Server on :5500), API calls must still reach Python on :8080.
+  const isLocalPage = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const isBackendOrigin = isLocalPage && window.location.port === '8080';
+  return isLocalPage && !isBackendOrigin ? `${LOCAL_BACKEND_ORIGIN}${path}` : path;
+}
+
 async function requestJson(url, options) {
   let response;
   try {
-    response = await fetch(url, options);
+    response = await fetch(apiUrl(url), options);
   } catch {
     throw new Error('Cannot reach the local portal server. Open http://127.0.0.1:8080 and refresh the page.');
   }
